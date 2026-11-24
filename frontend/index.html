@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI WaterWise - Intelligent Water Demand Forecasting & Resource Management</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="chart.min.js"></script>
+</head>
+<body>
+
+    <!-- 1. HEADER -->
+    <header class="project-header">
+        <div class="header-container">
+            <h1>AI WaterWise</h1>
+            <p class="subtitle">Intelligent Water Demand Forecasting and Resource Management System</p>
+            <p class="small-subtitle">Historical-data-trained AI with simulated real-time water monitoring</p>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+
+        <!-- 2. DATASET / MODEL SETUP -->
+        <section class="panel-card setup-card">
+            <div class="setup-header">
+                <h3>Dataset &amp; AI Model Setup</h3>
+                <span class="setup-notice">Prepare AI models for real-time telemetry analysis</span>
+            </div>
+            
+            <div class="setup-grid">
+                <div class="setup-info-group">
+                    <div class="info-item">
+                        <span class="label">Historical Dataset:</span>
+                        <strong id="info-filename">water_data.csv (Real-Time Dataset)</strong>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Records:</span>
+                        <strong id="info-records">5,500</strong>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Train / Validation / Test:</span>
+                        <strong>70% / 15% / 15%</strong>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Pipeline Status:</span>
+                        <span id="badge-processed" class="badge badge-success">DATA PROCESSED</span>
+                        <span id="badge-trained" class="badge badge-success">MODELS TRAINED</span>
+                    </div>
+                </div>
+
+                <div class="setup-actions-group">
+                    <div class="file-select-row">
+                        <label for="csv-file-input" class="btn btn-secondary">Choose CSV</label>
+                        <input type="file" id="csv-file-input" accept=".csv" class="hidden-input" onchange="updateSelectedFilename(this)">
+                        <span id="selected-filename" class="filename-label">No file chosen</span>
+                        <button id="btn-upload" class="btn btn-secondary" onclick="handleFileUpload(event)">Upload CSV</button>
+                    </div>
+                    <div class="pipeline-btn-row">
+                        <button id="btn-process" class="btn btn-primary" onclick="handleProcessData()">Process Data</button>
+                        <button id="btn-train" class="btn btn-success" onclick="handleTrainModels()">Train Models</button>
+                    </div>
+                </div>
+            </div>
+            <div id="upload-error-msg" class="error-banner hidden"></div>
+        </section>
+
+        <!-- 3. REAL-TIME MONITORING (MAIN SECTION) -->
+        <section class="panel-card main-monitoring-card">
+            <div class="monitoring-header">
+                <div class="header-left">
+                    <h2>LIVE WATER MONITORING</h2>
+                    <p class="section-subtitle">Synthetic real-time telemetry generated from historical water-consumption patterns.</p>
+                </div>
+                <div class="status-indicator-box">
+                    <span id="status-dot" class="status-dot dot-running">●</span>
+                    <strong id="status-text">RUNNING</strong>
+                </div>
+            </div>
+
+            <!-- Monitoring Controls Bar -->
+            <div class="controls-bar">
+                <div class="btn-group-main">
+                    <button id="btn-toggle-sim" class="btn btn-primary btn-lg" onclick="toggleRealtimeSim()">START LIVE MONITORING</button>
+                    <button id="btn-step-sim" class="btn btn-secondary" onclick="stepRealtimeSim()">STEP 1 TICK</button>
+                    <button id="btn-reset-sim" class="btn btn-danger" onclick="stopRealtimeSim()">RESET</button>
+                </div>
+
+                <div class="speed-control-group">
+                    <label for="speed-select">Feed Speed:</label>
+                    <select id="speed-select" onchange="changeRealtimeSpeed(this.value)">
+                        <option value="0.1">100 ms</option>
+                        <option value="0.25">250 ms</option>
+                        <option value="0.5">500 ms</option>
+                        <option value="1.0" selected>1 second</option>
+                        <option value="2.0">2 seconds</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 4. SCENARIO SELECTOR -->
+            <div class="scenario-section">
+                <div class="scenario-title-row">
+                    <span class="scenario-label">Select Operational Scenario:</span>
+                    <div class="scenario-inject-row">
+                        <button class="btn btn-inject btn-inject-burst" onclick="selectSimCondition('major_leak')">🚨 INJECT PIPE BURST</button>
+                        <button class="btn btn-inject btn-inject-micro" onclick="selectSimCondition('micro_leak')">💧 INJECT MICRO LEAK</button>
+                        <button class="btn btn-inject btn-inject-fault" onclick="selectSimCondition('sensor_fault')">⚠️ INJECT SENSOR FAULT</button>
+                        <button class="btn btn-inject btn-inject-normal" onclick="selectSimCondition('normal')">✅ RESTORE NORMAL</button>
+                    </div>
+                </div>
+
+                <div class="scenario-cards-grid">
+                    <button class="scenario-btn active" id="scen-btn-normal" onclick="selectSimCondition('normal')">
+                        <span class="scen-tag">NORMAL</span>
+                        <span class="scen-desc">Standard diurnal consumption</span>
+                    </button>
+                    <button class="scenario-btn" id="scen-btn-major_leak" onclick="selectSimCondition('major_leak')">
+                        <span class="scen-tag">PIPE BURST</span>
+                        <span class="scen-desc">Sudden massive flow burst</span>
+                    </button>
+                    <button class="scenario-btn" id="scen-btn-micro_leak" onclick="selectSimCondition('micro_leak')">
+                        <span class="scen-tag">MICRO LEAK</span>
+                        <span class="scen-desc">Night time continuous seepage</span>
+                    </button>
+                    <button class="scenario-btn" id="scen-btn-sensor_fault" onclick="selectSimCondition('sensor_fault')">
+                        <span class="scen-tag">SENSOR FAULT</span>
+                        <span class="scen-desc">Distorted telemetry readings</span>
+                    </button>
+                    <button class="scenario-btn" id="scen-btn-high_demand" onclick="selectSimCondition('high_demand')">
+                        <span class="scen-tag">HIGH DEMAND</span>
+                        <span class="scen-desc">Peak occupancy surge</span>
+                    </button>
+                    <button class="scenario-btn" id="scen-btn-low_tank" onclick="selectSimCondition('low_tank')">
+                        <span class="scen-tag">LOW TANK</span>
+                        <span class="scen-desc">Depleted storage reserve</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 5-10. LIVE METRICS & AI EVALUATION GRID -->
+            <div class="live-grid-2col">
+
+                <!-- 5. CURRENT LIVE TELEMETRY -->
+                <div class="card live-card">
+                    <h4>CURRENT LIVE TELEMETRY</h4>
+                    <div class="metrics-list">
+                        <div class="metric-item">
+                            <span class="m-label">Water Consumption</span>
+                            <span class="m-value highlight" id="val-consumption">-- L/hr</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="m-label">Temperature</span>
+                            <span class="m-value" id="val-temp">-- °C</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="m-label">Humidity</span>
+                            <span class="m-value" id="val-humidity">-- %</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="m-label">Occupancy</span>
+                            <span class="m-value" id="val-occupancy">--</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="m-label">Tank Level</span>
+                            <span class="m-value" id="val-tank">-- %</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="m-label">Timestamp</span>
+                            <span class="m-value timestamp-val" id="val-timestamp">--:--:--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. AI DEMAND PREDICTION -->
+                <div class="card live-card">
+                    <h4>AI DEMAND PREDICTION</h4>
+                    <div class="metrics-list">
+                        <div class="metric-item">
+                            <span class="m-label">Actual Consumption</span>
+                            <span class="m-value" id="val-actual">-- L/hr</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="m-label">DNN Expected Consumption</span>
+                            <span class="m-value" id="val-dnn-pred">-- L/hr</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="m-label">Difference</span>
+                            <span class="m-value diff-val" id="val-dnn-diff">-- L/hr</span>
+                        </div>
+                    </div>
+                    <p class="card-expl">DNN estimates expected water demand from current environmental and system conditions.</p>
+                </div>
+
+                <!-- 8. ANOMALY DETECTION -->
+                <div class="card live-card">
+                    <h4>ANOMALY DETECTION</h4>
+                    <div class="anomaly-status-box">
+                        <span class="status-badge badge-normal-status" id="val-anomaly-status">NORMAL</span>
+                    </div>
+                    <div class="metrics-list compact-list">
+                        <div class="metric-item">
+                            <span class="m-label">Autoencoder Reconstruction Error</span>
+                            <span class="m-value" id="val-ae-error">0.0000</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="m-label">Detection Threshold</span>
+                            <span class="m-value" id="val-ae-thresh">0.0083</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="m-label">Anomaly Type</span>
+                            <span class="m-value" id="val-anomaly-type">NORMAL</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9. LEAKAGE RISK -->
+                <div class="card live-card">
+                    <h4>LEAKAGE RISK</h4>
+                    <div class="risk-prob-row">
+                        <span class="m-label">Probability:</span>
+                        <strong class="risk-prob-text" id="val-risk-prob">0.0%</strong>
+                    </div>
+                    <div class="evidence-box">
+                        <strong>Evidence:</strong>
+                        <ul id="val-risk-evidence" class="evidence-list">
+                            <li>Awaiting telemetry stream...</li>
+                        </ul>
+                    </div>
+                    <p class="card-expl" id="val-risk-exp">System operating within normal parameters.</p>
+                </div>
+
+                <!-- 10. Q-LEARNING DECISION -->
+                <div class="card live-card full-width-card">
+                    <h4>AI RECOMMENDATION (Q-LEARNING AGENT)</h4>
+                    <div class="q-rec-grid">
+                        <div class="q-action-box">
+                            <span class="m-label">Recommended Action:</span>
+                            <div class="q-action-badge action-normal" id="val-q-action">PUMP OFF</div>
+                        </div>
+                        <div class="q-state-box">
+                            <strong>Current State:</strong>
+                            <div class="q-state-tags" id="val-q-state-tags">
+                                Tank: <span id="val-q-tank">NORMAL</span> | Demand: <span id="val-q-demand">NORMAL</span> | Risk: <span id="val-q-risk">LOW</span> | Anomaly: <span id="val-q-anom">NO</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="q-reason-box">
+                        <strong>Reason:</strong>
+                        <p id="val-q-reason">Real-time telemetry consistent with normal equilibrium bounds.</p>
+                    </div>
+                </div>
+
+                <!-- 7. FUTURE DEMAND FORECAST (LSTM 24h) -->
+                <div class="card live-card full-width-card">
+                    <h4>FUTURE DEMAND FORECAST (LSTM 24H)</h4>
+                    <div class="chart-wrapper-sm">
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 11. LIVE TELEMETRY CHART -->
+                <div class="card live-card full-width-card">
+                    <h4>LIVE WATER CONSUMPTION</h4>
+                    <div class="chart-wrapper-lg">
+                        <canvas id="liveChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 12. LIVE AI STATUS / EVENT LOG -->
+                <div class="card live-card full-width-card">
+                    <div class="log-header-row">
+                        <h4>LIVE AI STATUS / EVENT LOG</h4>
+                        <button class="btn btn-sm btn-secondary" onclick="clearEventLog()">Clear Log</button>
+                    </div>
+                    <div id="event-log-box" class="event-log-container">
+                        <div class="log-row log-info">
+                            <span class="log-time">[System]</span>
+                            <span class="log-msg">Live monitoring initialized. Click "START LIVE MONITORING" to stream ticks.</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- 14. MODEL PERFORMANCE (COLLAPSIBLE AT BOTTOM) -->
+        <details class="model-details-collapsible">
+            <summary class="model-details-summary">Model Details &amp; Evaluation Metrics</summary>
+            <div class="model-details-content">
+                <div class="details-grid">
+                    <div class="det-card">
+                        <h5>DNN Demand Model</h5>
+                        <div>MAE: <strong id="det-dnn-mae">-- L/hr</strong></div>
+                        <div>RMSE: <strong id="det-dnn-rmse">-- L/hr</strong></div>
+                        <div>R² Score: <strong id="det-dnn-r2">-- %</strong></div>
+                    </div>
+                    <div class="det-card">
+                        <h5>LSTM Time Series</h5>
+                        <div>MAE: <strong id="det-lstm-mae">-- L/hr</strong></div>
+                        <div>RMSE: <strong id="det-lstm-rmse">-- L/hr</strong></div>
+                        <div>Horizon: <strong>24 Hours</strong></div>
+                    </div>
+                    <div class="det-card">
+                        <h5>Autoencoder Anomaly</h5>
+                        <div>Threshold: <strong id="det-ae-thresh">0.0083</strong></div>
+                        <div>Input Dim: <strong>5 Features</strong></div>
+                    </div>
+                    <div class="det-card">
+                        <h5>Q-Learning RL Agent</h5>
+                        <div>Learned States: <strong id="det-q-states">--</strong></div>
+                        <div>Episodes: <strong>3,000</strong></div>
+                    </div>
+                </div>
+            </div>
+        </details>
+
+    </main>
+
+    <footer class="project-footer">
+        <p>AI WaterWise System | Department of Computer Science &amp; Engineering | Academic Project</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

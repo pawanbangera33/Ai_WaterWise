@@ -1,0 +1,30 @@
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# Environment variables
+.env
+
+# Uploaded user datasets
+data/uploads/
+
+# Trained model files
+saved_models/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
